@@ -16,6 +16,7 @@ def send_to_slave(block_uuid,data,slaves):
 def get(master,fname):
     file_table = master.get_file_table_entry(fname)
     for block in file_table:
+        pass
 
 
 def put(master,source,dest):
