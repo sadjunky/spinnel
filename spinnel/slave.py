@@ -32,7 +32,7 @@ class SlaveService(rpyc.Service):
             pass
 
 if __name__ == "__main__":
-    t = ThreadedServer(slaveservice, port = 8888)
-    #tt = ThreadedServer(slaveservice, port = 9999)
+    t = ThreadedServer(SlaveService, port = 8888)
+    #tt = ThreadedServer(SlaveService, port = 9999)
     t.start()
     #tt.start()
