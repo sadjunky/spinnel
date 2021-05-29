@@ -1,3 +1,5 @@
+import math
+import random
 import rpyc
 import threading
 import uuid
@@ -5,13 +7,13 @@ import uuid
 from rpyc.utils.server import ThreadedServer
 
 def set_conf():
-    MasterService.exposed_Master.block_size = 1024
-    MasterService.exposed_Master.replication_factor = 2
-    MasterService.exposed_Master.slaves = {"1":"localhost:8888","2":"localhost:9999"}
+    MasterService.ExposedMaster.block_size = 10
+    MasterService.ExposedMaster.replication_factor = 2
+    MasterService.ExposedMaster.slaves = {"1":"localhost:8888","2":"localhost:9999"}
 
 
 class MasterService(rpyc.Service):
-    class exposed_Master():
+    class ExposedMaster():
         file_table = {}
         block_mapping = {}
         slaves = {}
@@ -20,8 +22,8 @@ class MasterService(rpyc.Service):
         replication_factor = 0
 
         def exposed_read(self,fname):
-            f=file_table[fname]
-            pass
+            mapping = self.__class__.file_table[fname]
+            return mapping
             # return {"num_blk":3,
             #         "blk_meta":[
             #                       [(slave_loc,uuid),(slave_loc,uuid)],
@@ -29,18 +31,44 @@ class MasterService(rpyc.Service):
             #                     ]
             #        }
 
+        def exposed_write(self, dest, size):
+            if self.exists(dest):
+                pass # ignoring for now, will delete it later  
 
-    def exposed_write(self):
-        pass
-        # exits()
-        # calc_num_blk()
-        # # coroutines for each block.
-        # for each block:
-        #   algo_find_slaves()
-        #   put_entry     
+            self.__class__.file_table[dest]=[]
 
-    def exposed_put(self,val):
-        self.__class__.replication_factor = val
+            num_blocks = self.calc_num_blocks(size)
+            blocks = self.alloc_blocks(dest,num_blocks)
+            return blocks   
+
+        def exposed_put(self,val):
+            self.__class__.replication_factor = val
+        
+        def exposed_get_file_table_entry(self,fname):
+            return self.__class__.file_table[fname]
+
+        def exposed_get_block_size(self):
+            return self.__class__.block_size
+
+        def exposed_get_slaves(self):
+            return self.__class__.slaves
+
+        def calc_num_blocks(self,size):
+            return int(math.ceil(float(size)/self.__class__.block_size))
+
+        def exists(self,file):
+            return file in self.__class__.file_table
+
+        def alloc_blocks(self,dest,num):
+            blocks = []
+            for i in range(0,num):
+                block_uuid = uuid.uuid1()
+                nodes_ids = random.sample(self.__class__.slaves.keys(),self.__class__.replication_factor)
+                blocks.append((block_uuid,nodes_ids))
+
+                self.__class__.file_table[dest].append((block_uuid,nodes_ids))
+
+            return blocks
 
 
 if __name__ == "__main__":
