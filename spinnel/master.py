@@ -1,6 +1,10 @@
 import configparser
 import math
+import os
+import pickle
 import random
+import signal
+import sys
 import threading
 import uuid
 
@@ -8,17 +12,24 @@ import rpyc
 
 from rpyc.utils.server import ThreadedServer
 
+def int_handler(signal, frame):
+   pickle.dump((MasterService.ExposedMaster.file_table,MasterService.ExposedMaster.block_mapping), open('fs.img', 'wb'))
+   sys.exit(0)
+
 def set_conf():
     conf=configparser.ConfigParser()
     conf.readfp(open('spinnel.conf'))
     
-    MasterService.ExposedMaster.block_size = int(conf.get('master','block_size'))
-    MasterService.ExposedMaster.replication_factor = int(conf.get('master','replication_factor'))
+    MasterService.ExposedMaster.block_size = int(conf.get('master', 'block_size'))
+    MasterService.ExposedMaster.replication_factor = int(conf.get('master', 'replication_factor'))
     
-    slaves = conf.get('master','slaves').split(',')
+    slaves = conf.get('master', 'slaves').split(',')
     for m in slaves:
         id, host, port=m.split(":")
         MasterService.ExposedMaster.slaves[id]=(host, port)
+    
+    if os.path.isfile('fs.img'):
+        MasterService.ExposedMaster.file_table,MasterService.ExposedMaster.block_mapping = pickle.load(open('fs.img', 'rb'))
 
     print(MasterService.ExposedMaster.block_size, MasterService.ExposedMaster.replication_factor, MasterService.ExposedMaster.slaves)
 
@@ -38,7 +49,7 @@ class MasterService(rpyc.Service):
 
         def exposed_write(self, dest, size):
             if self.exists(dest):
-                pass # ignoring for now, will delete it later  
+                pass # ignoring for now, will remove later  
 
             self.__class__.file_table[dest]=[]
 
@@ -81,5 +92,6 @@ class MasterService(rpyc.Service):
 
 if __name__ == "__main__":
     set_conf()
+    signal.signal(signal.SIGINT,int_handler)
     t = ThreadedServer(MasterService, port = 2131)
     t.start()

@@ -13,7 +13,7 @@ class SlaveService(rpyc.Service):
         blocks = {}
 
         def exposed_put(self, block_uuid, data, slaves):
-            with open(DATA_DIR+str(block_uuid),'w') as f:
+            with open(DATA_DIR+str(block_uuid), 'w') as f:
                 f.write(data)
             if len(slaves)>0:
                 self.forward(block_uuid, data, slaves)
