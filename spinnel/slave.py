@@ -30,7 +30,7 @@ class SlaveService(rpyc.Service):
             print(block_uuid, slaves)
             slave=slaves[0]
             slaves=slaves[1:]
-            host,port=slave.split(":")
+            host,port=slave
 
             con=rpyc.connect(host, port=port)
             slave = con.root.slave()

@@ -1,3 +1,4 @@
+import configparser
 import math
 import random
 import threading
@@ -8,9 +9,19 @@ import rpyc
 from rpyc.utils.server import ThreadedServer
 
 def set_conf():
-    MasterService.ExposedMaster.block_size = 10
-    MasterService.ExposedMaster.replication_factor = 2
-    MasterService.ExposedMaster.slaves = {"1":"localhost:8888","2":"localhost:9999"}
+    conf=configparser.ConfigParser()
+    conf.readfp(open('spinnel.conf'))
+    
+    MasterService.ExposedMaster.block_size = int(conf.get('master','block_size'))
+    MasterService.ExposedMaster.replication_factor = int(conf.get('master','replication_factor'))
+    
+    slaves = conf.get('master','slaves').split(',')
+    #MasterService.ExposedMaster.slaves = {"1":("localhost",8888),"2":("localhost",9999)}
+    for m in slaves:
+        id, host, port=m.split(":")
+        MasterService.ExposedMaster.slaves[id]=(host, port)
+
+    print(MasterService.ExposedMaster.block_size, MasterService.ExposedMaster.replication_factor, MasterService.ExposedMaster.slaves)
 
 
 class MasterService(rpyc.Service):

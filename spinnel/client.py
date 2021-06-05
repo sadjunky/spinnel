@@ -7,7 +7,7 @@ def send_to_slave(block_uuid, data, slaves):
     print("sending: " + str(block_uuid) + str(slaves))
     slave=slaves[0]
     slaves=slaves[1:]
-    host, port=slave.split(":")
+    host, port=slave
 
     con=rpyc.connect(host, port=port)
     slave = con.root.Slave()
@@ -15,7 +15,7 @@ def send_to_slave(block_uuid, data, slaves):
 
 
 def read_from_slave(block_uuid, slave):
-   host, port = slave.split(":")
+   host, port = slave
    con=rpyc.connect(host, port=port)
    slave = con.root.Slave()
    return slave.get(block_uuid)
