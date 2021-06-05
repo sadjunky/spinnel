@@ -16,7 +16,6 @@ def set_conf():
     MasterService.ExposedMaster.replication_factor = int(conf.get('master','replication_factor'))
     
     slaves = conf.get('master','slaves').split(',')
-    #MasterService.ExposedMaster.slaves = {"1":("localhost",8888),"2":("localhost",9999)}
     for m in slaves:
         id, host, port=m.split(":")
         MasterService.ExposedMaster.slaves[id]=(host, port)

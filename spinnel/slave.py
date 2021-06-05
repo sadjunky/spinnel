@@ -40,7 +40,6 @@ class SlaveService(rpyc.Service):
             pass
 
 if __name__ == "__main__":
+    os.mkdir(DATA_DIR)
     t = ThreadedServer(SlaveService, port = 8888)
-    #tt = ThreadedServer(SlaveService, port = 9999)
     t.start()
-    #tt.start()
