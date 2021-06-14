@@ -5,7 +5,6 @@ import pickle
 import random
 import signal
 import sys
-import threading
 import uuid
 
 import rpyc
@@ -30,9 +29,6 @@ def set_conf():
     
     if os.path.isfile('fs.img'):
         MasterService.ExposedMaster.file_table,MasterService.ExposedMaster.block_mapping = pickle.load(open('fs.img', 'rb'))
-
-    print(MasterService.ExposedMaster.block_size, MasterService.ExposedMaster.replication_factor, MasterService.ExposedMaster.slaves)
-
 
 class MasterService(rpyc.Service):
     class ExposedMaster():
